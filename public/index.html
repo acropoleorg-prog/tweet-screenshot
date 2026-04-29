@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tweet to Image</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Chirp:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #ffffff;
+      --bg-elevated: #f7f9f9;
+      --border: #eff3f4;
+      --border-strong: #cfd9de;
+      --text: #0f1419;
+      --text-secondary: #536471;
+      --accent: #0f1419;
+      --accent-hover: #272c30;
+      --error: #f4212e;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ── Header ────────────────────────────────────────────── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    header svg {
+      width: 24px;
+      height: 24px;
+      fill: var(--text);
+    }
+
+    header h1 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    /* ── Main layout ───────────────────────────────────────── */
+    main {
+      flex: 1;
+      max-width: 1100px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 40px 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+    }
+
+    @media (max-width: 768px) {
+      main { grid-template-columns: 1fr; padding: 24px 16px; }
+    }
+
+    /* ── Input panel ───────────────────────────────────────── */
+    .panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .panel-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .intro {
+      font-size: 15px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-bottom: 4px;
+    }
+
+    .intro strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 240px;
+      padding: 16px;
+      border: 1px solid var(--border-strong);
+      border-radius: 16px;
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text);
+      background: var(--bg);
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    textarea:focus {
+      border-color: var(--accent);
+    }
+
+    textarea::placeholder {
+      color: var(--text-secondary);
+      opacity: 0.6;
+    }
+
+    button.generate {
+      align-self: flex-start;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 9999px;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.05s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    button.generate:hover:not(:disabled) {
+      background: var(--accent-hover);
+    }
+
+    button.generate:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    button.generate:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .hint {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .hint code {
+      background: var(--bg-elevated);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    /* ── Output panel ──────────────────────────────────────── */
+    .output {
+      background: var(--bg-elevated);
+      border: 1px dashed var(--border-strong);
+      border-radius: 16px;
+      min-height: 360px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      position: relative;
+    }
+
+    .output.has-image {
+      background: var(--bg);
+      border-style: solid;
+    }
+
+    .output-placeholder {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 14px;
+      max-width: 280px;
+    }
+
+    .output-placeholder svg {
+      width: 48px;
+      height: 48px;
+      opacity: 0.3;
+      margin-bottom: 12px;
+    }
+
+    .output img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    }
+
+    .output-actions {
+      margin-top: 16px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    button.action {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border-strong);
+      padding: 8px 16px;
+      border-radius: 9999px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    button.action:hover {
+      background: var(--bg-elevated);
+    }
+
+    button.action svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* ── Loading state ─────────────────────────────────────── */
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      margin-top: 12px;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    /* ── Error ─────────────────────────────────────────────── */
+    .error {
+      color: var(--error);
+      font-size: 14px;
+      text-align: center;
+      max-width: 320px;
+    }
+
+    /* ── Footer ────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 16px 24px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    footer a {
+      color: var(--text-secondary);
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622Zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+    </svg>
+    <h1>Tweet to Image</h1>
+  </header>
+
+  <main>
+    <!-- Input -->
+    <section class="panel">
+      <p class="intro">
+        Cole o <strong>código embed</strong> de um tweet e gere uma imagem PNG pronta para usar em matérias, redes sociais e newsletters.
+      </p>
+
+      <span class="panel-label">Embed do tweet</span>
+      <textarea id="embed" placeholder='<blockquote class="twitter-tweet"><p>...</p>&mdash; Nome (@handle) <a href="https://twitter.com/...">June 8, 2023</a></blockquote>'></textarea>
+
+      <button class="generate" id="generate">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
+          <circle cx="12" cy="13" r="3"/>
+        </svg>
+        Gerar imagem
+      </button>
+
+      <p class="hint">
+        Para obter o embed: no X, clique em <code>···</code> no canto do tweet → <code>Incorporar Post</code> → <code>Copy Code</code>.
+      </p>
+    </section>
+
+    <!-- Output -->
+    <section class="panel">
+      <span class="panel-label">Resultado</span>
+
+      <div class="output" id="output">
+        <div class="output-placeholder" id="placeholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+          <div>A imagem aparecerá aqui após você gerar.</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Acrópole · Tweet to Image
+  </footer>
+
+  <script>
+    const embedInput = document.getElementById('embed');
+    const generateBtn = document.getElementById('generate');
+    const output = document.getElementById('output');
+
+    function setLoading() {
+      output.classList.remove('has-image');
+      output.innerHTML = `
+        <div class="spinner"></div>
+        <div class="loading-text">Gerando imagem...</div>
+      `;
+    }
+
+    function setError(message) {
+      output.classList.remove('has-image');
+      output.innerHTML = `<div class="error">⚠️ ${message}</div>`;
+    }
+
+    function setImage(blobUrl) {
+      output.classList.add('has-image');
+      output.innerHTML = `
+        <img src="${blobUrl}" alt="Tweet rendered" id="result-img" />
+        <div class="output-actions">
+          <button class="action" id="download-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Baixar PNG
+          </button>
+          <button class="action" id="copy-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            Copiar imagem
+          </button>
+        </div>
+      `;
+
+      document.getElementById('download-btn').addEventListener('click', () => {
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = `tweet-${Date.now()}.png`;
+        a.click();
+      });
+
+      document.getElementById('copy-btn').addEventListener('click', async () => {
+        try {
+          const response = await fetch(blobUrl);
+          const blob = await response.blob();
+          await navigator.clipboard.write([
+            new ClipboardItem({ 'image/png': blob })
+          ]);
+          const btn = document.getElementById('copy-btn');
+          const originalHtml = btn.innerHTML;
+          btn.innerHTML = '✓ Copiado';
+          setTimeout(() => { btn.innerHTML = originalHtml; }, 1500);
+        } catch (err) {
+          alert('Não foi possível copiar a imagem. Use o botão Baixar.');
+        }
+      });
+    }
+
+    generateBtn.addEventListener('click', async () => {
+      const embed = embedInput.value.trim();
+
+      if (!embed) {
+        setError('Cole o código embed do tweet primeiro.');
+        return;
+      }
+
+      if (!embed.includes('blockquote') || !embed.includes('twitter-tweet')) {
+        setError('Embed inválido. Certifique-se de copiar o código completo.');
+        return;
+      }
+
+      generateBtn.disabled = true;
+      setLoading();
+
+      try {
+        const response = await fetch('/screenshot', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ embed })
+        });
+
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+          throw new Error(error.error || 'Falha ao gerar imagem.');
+        }
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        setImage(url);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        generateBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
